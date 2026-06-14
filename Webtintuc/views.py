@@ -459,7 +459,7 @@ def my_posts(request):
     if not is_author(request.user):
         return redirect('webtintuc:index')
     # Admin/staff thấy tất cả bài; author chỉ thấy bài của mình
-    if is_admin_role(request.user) or request.user.is_staff:
+    if is_admin_role(request.user):
         posts = Post.objects.all().order_by('-created_at')
     else:
         posts = Post.objects.filter(author=request.user).order_by('-created_at')
