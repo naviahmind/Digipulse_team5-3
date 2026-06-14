@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Thông báo{% endblock %}
+{% block content %}
+<div class="container" style="max-width:700px;margin:30px auto;">
+  <h2 style="margin-bottom:20px;">🔔 Thông báo của bạn</h2>
+  {% if notifications %}
+    {% for n in notifications %}
+    <div class="notif-item {% if not n.is_read %}notif-unread{% endif %}">
+      <div class="notif-msg">
+        {% if n.post %}
+          <a href="{% url 'webtintuc:post_detail' n.post.slug %}">{{ n.message }}</a>
+        {% else %}
+          {{ n.message }}
+        {% endif %}
+      </div>
+      <div class="notif-time">{{ n.created_at|date:"d/m/Y H:i" }}</div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div style="text-align:center;padding:60px 0;color:#999;">
+      <div style="font-size:48px;margin-bottom:12px;">🔕</div>
+      <p>Bạn chưa có thông báo nào.<br>Hãy theo dõi một chủ đề để nhận tin mới!</p>
+    </div>
+  {% endif %}
+</div>
+<style>
+.notif-item{background:#fff;border:1px solid #eee;border-radius:8px;padding:14px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:16px;}
+.notif-unread{border-left:4px solid #667eea;background:#f7f8ff;}
+.notif-msg a{color:#333;text-decoration:none;font-size:14px;}
+.notif-msg a:hover{color:#667eea;}
+.notif-time{color:#aaa;font-size:12px;white-space:nowrap;}
+</style>
+{% endblock %}

@@ -1,0 +1,527 @@
+{% extends "base.html" %}
+
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <a href="{% url 'webtintuc:index' %}" class="back-link">← Back</a>
+
+    <article class="article">
+        <h1>{{ post.title }}</h1>
+        <p class="article-meta">
+            ✍️ <a href="{% url 'webtintuc:user_profile' post.author.username %}" class="author-link">{{ post.author.get_full_name|default:post.author.username }}</a>
+            &nbsp;|&nbsp; 📅 {{ post.published_at|date:"d/m/Y" }} &nbsp;|&nbsp; 👁️ {{ post.views_count }} lượt xem
+            &nbsp;|&nbsp; 📂 <a href="{% url 'webtintuc:category' post.category.slug %}">{{ post.category.name }}</a>
+        </p>
+
+        {% if post.thumbnail %}
+        <div class="article-thumbnail">
+            <img src="{{ post.thumbnail.url }}" alt="{{ post.title }}" class="thumbnail-img">
+        </div>
+        {% endif %}
+
+        <div class="article-body">
+            <p><strong>{{ post.summary }}</strong></p>
+            {{ post.content|safe }}
+        </div>
+
+        <!-- IN-ARTICLE ADS -->
+        {% if in_article_ads %}
+        <div class="in-article-ads">
+            {% for ad in in_article_ads %}
+            <div class="in-article-ad">
+                <span class="ad-label">Quảng cáo</span>
+                {% if ad.link_url %}<a href="{{ ad.link_url }}" target="_blank" rel="noopener sponsored">{% endif %}
+                {% if ad.image %}<img src="{{ ad.image.url }}" alt="{{ ad.title }}">{% endif %}
+                <div class="in-article-ad-text">
+                    <strong>{{ ad.title }}</strong>
+                    {% if ad.content %}<p>{{ ad.content }}</p>{% endif %}
+                </div>
+                {% if ad.link_url %}</a>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- ===== LIKE / DISLIKE ===== -->
+        <div class="reaction-bar">
+            {% if user.is_authenticated %}
+            <button class="react-btn {% if user_reaction == 'like' %}active-like{% endif %}" id="btnLike" onclick="react('like')">
+                👍 <span id="likeCount">{{ like_count }}</span>
+            </button>
+            <button class="react-btn {% if user_reaction == 'dislike' %}active-dislike{% endif %}" id="btnDislike" onclick="react('dislike')">
+                👎 <span id="dislikeCount">{{ dislike_count }}</span>
+            </button>
+            {% else %}
+            <a href="{% url 'webtintuc:login' %}" class="react-btn">👍 {{ like_count }}</a>
+            <a href="{% url 'webtintuc:login' %}" class="react-btn">👎 {{ dislike_count }}</a>
+            <small style="color:#999;margin-left:8px;">Đăng nhập để tương tác</small>
+            {% endif %}
+
+            <!-- Follow danh mục -->
+            {% if user.is_authenticated %}
+            <button class="follow-btn {% if is_following %}following{% endif %}" id="followBtn" onclick="toggleFollow()">
+                {% if is_following %}✅ Đang theo dõi "{{ post.category.name }}"{% else %}+ Theo dõi "{{ post.category.name }}"{% endif %}
+            </button>
+            {% endif %}
+        </div>
+
+        <script>
+        var csrfToken = '{{ csrf_token }}';
+
+        function react(type) {
+            fetch('{% url "webtintuc:react_post" post.slug %}', {
+                method: 'POST',
+                headers: {'X-CSRFToken': csrfToken, 'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'type=' + type
+            }).then(r => r.json()).then(data => {
+                document.getElementById('likeCount').textContent = data.like_count;
+                document.getElementById('dislikeCount').textContent = data.dislike_count;
+                document.getElementById('btnLike').className = 'react-btn' + (data.user_reaction === 'like' ? ' active-like' : '');
+                document.getElementById('btnDislike').className = 'react-btn' + (data.user_reaction === 'dislike' ? ' active-dislike' : '');
+            });
+        }
+
+        {% if user.is_authenticated %}
+        var _isFollowing = {{ is_following|yesno:"true,false" }};
+        var _categoryName = '{{ post.category.name }}';
+        function toggleFollow() {
+            fetch('{% url "webtintuc:follow_category" post.category.slug %}', {
+                method: 'POST',
+                headers: {'X-CSRFToken': csrfToken}
+            }).then(r => r.json()).then(data => {
+                _isFollowing = data.following;
+                var btn = document.getElementById('followBtn');
+                if (data.following) {
+                    btn.textContent = '✅ Đang theo dõi "' + _categoryName + '"';
+                    btn.className = 'follow-btn following';
+                } else {
+                    btn.textContent = '+ Theo dõi "' + _categoryName + '"';
+                    btn.className = 'follow-btn';
+                }
+            });
+        }
+        {% endif %}
+        </script>
+
+        <!-- ===== SHARE ===== -->
+        <div class="share-bar">
+            <span class="share-label">📢 Chia sẻ:</span>
+            <a class="share-btn share-fb" id="shareFacebook" target="_blank" rel="noopener" title="Chia sẻ lên Facebook">Facebook</a>
+            <a class="share-btn share-x" id="shareTwitter" target="_blank" rel="noopener" title="Chia sẻ lên X (Twitter)">X</a>
+            <a class="share-btn share-zalo" id="shareZalo" target="_blank" rel="noopener" title="Chia sẻ lên Zalo">Zalo</a>
+            <a class="share-btn share-telegram" id="shareTelegram" target="_blank" rel="noopener" title="Chia sẻ lên Telegram">Telegram</a>
+            <button type="button" class="share-btn share-copy" id="shareCopy" title="Sao chép liên kết">🔗 Sao chép link</button>
+        </div>
+
+        <script>
+        (function() {
+            var pageUrl = window.location.href;
+            var pageTitle = document.title;
+            document.getElementById('shareFacebook').href = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(pageUrl);
+            document.getElementById('shareTwitter').href = 'https://twitter.com/intent/tweet?url=' + encodeURIComponent(pageUrl) + '&text=' + encodeURIComponent(pageTitle);
+            document.getElementById('shareZalo').href = 'https://zalo.me/share/url?url=' + encodeURIComponent(pageUrl) + '&title=' + encodeURIComponent(pageTitle);
+            document.getElementById('shareTelegram').href = 'https://t.me/share/url?url=' + encodeURIComponent(pageUrl) + '&text=' + encodeURIComponent(pageTitle);
+
+            document.getElementById('shareCopy').addEventListener('click', function() {
+                var btn = this;
+                navigator.clipboard.writeText(pageUrl).then(function() {
+                    var old = btn.textContent;
+                    btn.textContent = '✅ Đã sao chép!';
+                    setTimeout(function() { btn.textContent = old; }, 2000);
+                }).catch(function() {
+                    alert(pageUrl);
+                });
+            });
+        })();
+        </script>
+
+        <!-- Related Posts -->
+        {% if related_posts %}
+        <div class="related">
+            <h3>Related News</h3>
+            <div class="news-grid">
+                {% for related in related_posts %}
+                <div class="news-card">
+                    <h4><a href="{% url 'webtintuc:post_detail' related.slug %}">{{ related.title }}</a></h4>
+                    <p class="news-meta">{{ related.author.get_full_name|default:related.author.username }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Comments Section -->
+        <div class="comments-section">
+            <h3>Comments ({{ comments|length }})</h3>
+            
+            <!-- Comment List -->
+            <div class="comments-list">
+                {% for comment in comments %}
+                <div class="comment" id="comment-{{ comment.id }}">
+                    <div class="comment-head">
+                        <div>
+                            <strong>{{ comment.user.get_full_name|default:comment.user.username }}</strong>
+                            <small>{{ comment.created_at|date:"d/m/Y H:i" }}</small>
+                        </div>
+                        {% if user.is_authenticated and user == comment.user %}
+                        <div class="comment-actions">
+                            <button type="button" class="comment-action-btn" onclick="toggleEditComment({{ comment.id }})">✏️ Sửa</button>
+                            <form method="POST" action="{% url 'webtintuc:delete_comment' comment.id %}" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn xóa bình luận này?');">
+                                {% csrf_token %}
+                                <button type="submit" class="comment-action-btn comment-delete-btn">🗑️ Xóa</button>
+                            </form>
+                        </div>
+                        {% elif user.is_authenticated and user.is_staff %}
+                        <div class="comment-actions">
+                            <form method="POST" action="{% url 'webtintuc:delete_comment' comment.id %}" style="display:inline;" onsubmit="return confirm('Xóa bình luận này với quyền quản trị?');">
+                                {% csrf_token %}
+                                <button type="submit" class="comment-action-btn comment-delete-btn">🗑️ Xóa (Admin)</button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <p class="comment-content" id="comment-content-{{ comment.id }}">{{ comment.content }}</p>
+
+                    {% if user.is_authenticated and user == comment.user %}
+                    <form method="POST" action="{% url 'webtintuc:edit_comment' comment.id %}" class="comment-edit-form" id="comment-edit-form-{{ comment.id }}" style="display:none;">
+                        {% csrf_token %}
+                        <textarea name="content" class="comment-edit-textarea" rows="3">{{ comment.content }}</textarea>
+                        <div class="comment-edit-actions">
+                            <button type="submit" class="btn">Lưu</button>
+                            <button type="button" class="btn-cancel" onclick="toggleEditComment({{ comment.id }})">Hủy</button>
+                        </div>
+                    </form>
+                    {% endif %}
+                </div>
+                {% empty %}
+                <p>No comments yet.</p>
+                {% endfor %}
+            </div>
+
+            <script>
+            function toggleEditComment(id) {
+                var content = document.getElementById('comment-content-' + id);
+                var form = document.getElementById('comment-edit-form-' + id);
+                if (form.style.display === 'none') {
+                    form.style.display = 'block';
+                    content.style.display = 'none';
+                } else {
+                    form.style.display = 'none';
+                    content.style.display = 'block';
+                }
+            }
+            </script>
+
+            <!-- Add Comment Form -->
+            {% if user.is_authenticated %}
+            <div class="comment-form">
+                <h4>Write a Comment</h4>
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="comment" value="1">
+                    {{ comment_form.as_p }}
+                    <button type="submit" class="btn">Post Comment</button>
+                </form>
+            </div>
+            {% else %}
+            <div class="comment-login-prompt">
+                <p><a href="{% url 'webtintuc:login' %}">Login</a> to post a comment.</p>
+            </div>
+            {% endif %}
+        </div>
+    </article>
+</div>
+
+<style>
+    .reaction-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 18px 0;
+        border-top: 1px solid #eee;
+        border-bottom: 1px solid #eee;
+        margin: 24px 0;
+        flex-wrap: wrap;
+    }
+
+    .share-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin: 0 0 24px;
+    }
+
+    .share-label {
+        font-weight: 600;
+        color: #555;
+        font-size: 14px;
+        margin-right: 4px;
+    }
+
+    .share-btn {
+        display: inline-block;
+        padding: 7px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        transition: opacity .2s;
+        font-family: inherit;
+    }
+    .share-btn:hover { opacity: .85; }
+
+    .share-fb { background: #1877f2; }
+    .share-x { background: #000; }
+    .share-zalo { background: #0068ff; }
+    .share-telegram { background: #29a9eb; }
+    .share-copy { background: #667eea; }
+
+    .react-btn {
+        padding: 8px 18px;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        background: #f8f8f8;
+        cursor: pointer;
+        font-size: 15px;
+        transition: all .2s;
+        text-decoration: none;
+        color: #333;
+    }
+    .react-btn:hover { background: #eee; }
+    .active-like  { background: #e8f4fd; border-color: #3498db; color: #2980b9; font-weight: bold; }
+    .active-dislike { background: #fdecea; border-color: #e74c3c; color: #c0392b; font-weight: bold; }
+    .follow-btn {
+        margin-left: auto;
+        padding: 8px 16px;
+        border-radius: 20px;
+        border: 1px solid #667eea;
+        background: #fff;
+        color: #667eea;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        transition: all .2s;
+    }
+    .follow-btn:hover { background: #667eea; color: #fff; }
+    .follow-btn.following { background: #667eea; color: #fff; }
+    .follow-btn.following:hover { background: #e74c3c; border-color: #e74c3c; }
+
+    .thumbnail-img {
+        width: 100%;
+        max-height: 450px;
+        object-fit: cover;
+        display: block;
+    }
+
+    .back-link {
+        color: #0066cc;
+        text-decoration: none;
+        display: inline-block;
+        margin-bottom: 20px;
+    }
+
+    .back-link:hover {
+        text-decoration: underline;
+    }
+
+    .article {
+        background: white;
+        padding: 30px;
+        border-radius: 3px;
+    }
+
+    .article h1 {
+        font-size: 32px;
+        margin-bottom: 15px;
+    }
+
+    .article-meta {
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 30px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 15px;
+    }
+
+    .article-body {
+        line-height: 1.8;
+        margin-bottom: 40px;
+    }
+
+    .article-body p {
+        margin-bottom: 15px;
+    }
+
+    .related {
+        margin-top: 40px;
+        padding-top: 30px;
+        border-top: 2px solid #eee;
+    }
+
+    .related h3 {
+        margin-bottom: 20px;
+    }
+
+    .related .news-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .comments-section {
+        margin-top: 40px;
+        padding-top: 30px;
+        border-top: 2px solid #eee;
+    }
+
+    .comments-list {
+        margin: 20px 0;
+    }
+
+    .comment {
+        background: #f9f9f9;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-left: 3px solid #667eea;
+        border-radius: 3px;
+    }
+
+    .comment strong {
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .comment small {
+        color: #999;
+        font-size: 12px;
+    }
+
+    .comment p {
+        margin-top: 10px;
+        line-height: 1.6;
+    }
+
+    .comment-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .comment-actions {
+        display: flex;
+        gap: 6px;
+        flex-shrink: 0;
+    }
+
+    .comment-action-btn {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 3px 10px;
+        font-size: 12px;
+        cursor: pointer;
+        color: #555;
+        transition: all .15s;
+    }
+
+    .comment-action-btn:hover {
+        background: #667eea;
+        color: #fff;
+        border-color: #667eea;
+    }
+
+    .comment-delete-btn:hover {
+        background: #e74c3c;
+        border-color: #e74c3c;
+    }
+
+    .comment-content {
+        margin-top: 10px;
+        line-height: 1.6;
+    }
+
+    .comment-edit-form {
+        margin-top: 10px;
+    }
+
+    .comment-edit-textarea {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-family: inherit;
+        font-size: 14px;
+        resize: vertical;
+        box-sizing: border-box;
+    }
+
+    .comment-edit-actions {
+        margin-top: 8px;
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-cancel {
+        background: #eee;
+        color: #555;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .btn-cancel:hover {
+        background: #ddd;
+    }
+
+    .comment-form {
+        background: #f0f0f0;
+        padding: 20px;
+        border-radius: 3px;
+        margin-top: 20px;
+    }
+
+    .comment-form h4 {
+        margin-top: 0;
+    }
+
+    .comment-login-prompt {
+        background: #f0f0f0;
+        padding: 20px;
+        text-align: center;
+        border-radius: 3px;
+        margin-top: 20px;
+    }
+
+    .comment-form textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 3px;
+        font-family: Arial, sans-serif;
+        resize: vertical;
+    }
+
+    .btn {
+        background: #667eea;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .btn:hover {
+        background: #5568d3;
+    }
+</style>
+{% endblock %}
