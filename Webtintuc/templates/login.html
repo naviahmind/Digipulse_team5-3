@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="auth-form">
+        <h2>Đăng Nhập</h2>
+        <form method="POST">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+            <div class="error-message">
+                {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            {{ form.as_p }}
+            
+            <button type="submit" class="btn">Đăng Nhập</button>
+        </form>
+        
+        <p class="auth-link">
+            Chưa có tài khoản? <a href="{% url 'webtintuc:register' %}">Đăng ký ở đây</a>
+        </p>
+    </div>
+</div>
+
+<style>
+    .auth-form {
+        max-width: 400px;
+        margin: 50px auto;
+        padding: 30px;
+        background: white;
+        border-radius: 3px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .auth-form h2 {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .auth-form form p {
+        margin-bottom: 15px;
+    }
+
+    .auth-form label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    .auth-form input[type="text"],
+    .auth-form input[type="password"],
+    .auth-form input[type="email"] {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 3px;
+        box-sizing: border-box;
+        font-size: 14px;
+    }
+
+    .auth-form button {
+        width: 100%;
+        padding: 12px;
+        background: #667eea;
+        color: white;
+        border: none;
+        border-radius: 3px;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    .auth-form button:hover {
+        background: #5568d3;
+    }
+
+    .auth-link {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .auth-link a {
+        color: #667eea;
+        text-decoration: none;
+    }
+
+    .auth-link a:hover {
+        text-decoration: underline;
+    }
+
+    .error-message {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 12px;
+        border: 1px solid #f5c6cb;
+        border-radius: 3px;
+        margin-bottom: 15px;
+    }
+
+    .error-message p {
+        margin: 0;
+    }
+
+    .form-errors {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 10px;
+        border: 1px solid #f5c6cb;
+        border-radius: 3px;
+        margin-bottom: 10px;
+        font-size: 13px;
+    }
+
+    .form-errors ul {
+        margin: 0;
+        padding-left: 20px;
+    }
+</style>
+{% endblock %}

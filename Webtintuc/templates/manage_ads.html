@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block title %}Quản lý quảng cáo{% endblock %}
+
+{% block content %}
+<div class="admin-ads-wrap">
+
+    <!-- Header -->
+    <div class="admin-header">
+        <div>
+            <h2>📢 Quản lý quảng cáo</h2>
+            <p class="admin-subtitle">Thêm, chỉnh sửa và quản lý các banner quảng cáo trên website</p>
+        </div>
+        <button class="btn-add-ad" onclick="document.getElementById('modalAddAd').style.display='flex'">
+            + Thêm quảng cáo mới
+        </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card stat-total">
+            <div class="stat-icon">📋</div>
+            <div class="stat-body">
+                <div class="stat-num">{{ ads|length }}</div>
+                <div class="stat-label">Tổng quảng cáo</div>
+            </div>
+        </div>
+        <div class="stat-card stat-active">
+            <div class="stat-icon">✅</div>
+            <div class="stat-body">
+                <div class="stat-num">{{ ads|length }}</div>
+                <div class="stat-label">Đang hoạt động</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ads Table -->
+    <div class="table-wrap">
+        <table class="users-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Hình ảnh</th>
+                    <th>Tiêu đề</th>
+                    <th>Vị trí</th>
+                    <th>Trạng thái</th>
+                    <th>Thời gian</th>
+                    <th>Ngày tạo</th>
+                    <th class="th-actions">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ad in ads %}
+                <tr class="{% if not ad.is_active %}row-locked{% endif %}">
+                    <td class="td-num">{{ forloop.counter }}</td>
+                    <td>
+                        {% if ad.image %}
+                        <img src="{{ ad.image.url }}" alt="{{ ad.title }}" style="width:80px;height:50px;object-fit:cover;border-radius:4px;">
+                        {% else %}
+                        <div style="width:80px;height:50px;background:#f0f0f0;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#999;font-size:11px;">Chưa có ảnh</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <strong>{{ ad.title }}</strong>
+                        {% if ad.link_url %}
+                        <br><a href="{{ ad.link_url }}" target="_blank" style="font-size:12px;color:#3498db;">{{ ad.link_url|truncatechars:40 }}</a>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="pos-badge pos-{{ ad.position }}">
+                            {% if ad.position == 'homepage' %}🏠 Trang chủ
+                            {% elif ad.position == 'header' %}🔝 Header
+                            {% elif ad.position == 'sidebar' %}📌 Sidebar
+                            {% elif ad.position == 'footer' %}🔻 Footer
+                            {% elif ad.position == 'in_article' %}📄 Trong bài
+                            {% else %}{{ ad.get_position_display }}
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="toggle-ad-btn {% if ad.is_active %}btn-active{% else %}btn-inactive{% endif %}"
+                                onclick="toggleAd({{ ad.id }}, this)"
+                                title="Click để bật/tắt">
+                            {% if ad.is_active %}✅ Đang hiển thị{% else %}⏸️ Tạm dừng{% endif %}
+                        </button>
+                    </td>
+                    <td style="font-size:13px;color:#666;">
+                        {% if ad.start_date or ad.end_date %}
+                        {{ ad.start_date|date:"d/m/Y"|default:"?" }} → {{ ad.end_date|date:"d/m/Y"|default:"∞" }}
+                        {% else %}
+                        <span style="color:#aaa;">Không giới hạn</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size:13px;color:#888;">{{ ad.created_at|date:"d/m/Y" }}</td>
+                    <td class="td-actions">
+                        <a href="{% url 'webtintuc:edit_ad' ad.id %}" class="btn-edit-sm">✏️ Sửa</a>
+                        <form method="POST" action="{% url 'webtintuc:delete_ad' ad.id %}" style="display:inline;"
+                              onsubmit="return confirm('Xóa quảng cáo \"{{ ad.title }}\"?')">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-del-sm">🗑️ Xóa</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" style="text-align:center;padding:40px;color:#aaa;">Chưa có quảng cáo nào. Nhấn "+ Thêm quảng cáo mới" để bắt đầu.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal: Thêm quảng cáo mới -->
+<div id="modalAddAd" class="modal-overlay" style="display:none;">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>➕ Thêm quảng cáo mới</h3>
+            <button class="modal-close" onclick="document.getElementById('modalAddAd').style.display='none'">✕</button>
+        </div>
+        <form method="POST" action="{% url 'webtintuc:create_ad' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="fg">
+                <label>Tiêu đề quảng cáo *</label>
+                <input type="text" name="title" required placeholder="VD: Banner sản phẩm ABC">
+            </div>
+            <div class="fg">
+                <label>Vị trí hiển thị *</label>
+                <select name="position">
+                    {% for val, label in position_choices %}
+                    <option value="{{ val }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="fg">
+                <label>Hình ảnh banner</label>
+                <input type="file" name="image" accept="image/*">
+                <small style="color:#888;">Khuyên dùng: Header/Footer 728×90px, Sidebar 300×250px. <b>Để trống nếu dùng quảng cáo dạng văn bản.</b></small>
+            </div>
+            <div class="fg">
+                <label>Nội dung văn bản (hiển thị khi không có ảnh)</label>
+                <textarea name="content" rows="3" placeholder="Nhập nội dung quảng cáo dạng chữ..."></textarea>
+            </div>
+            <div class="fg">
+                <label>Link URL (khi click vào quảng cáo)</label>
+                <input type="url" name="link_url" placeholder="https://example.com">
+            </div>
+            <div class="fg-row">
+                <div class="fg">
+                    <label>Ngày bắt đầu</label>
+                    <input type="date" name="start_date">
+                </div>
+                <div class="fg">
+                    <label>Ngày kết thúc</label>
+                    <input type="date" name="end_date">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="document.getElementById('modalAddAd').style.display='none'">Hủy</button>
+                <button type="submit" class="btn-save">💾 Lưu quảng cáo</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+var csrfToken = '{{ csrf_token }}';
+
+function toggleAd(adId, btn) {
+    fetch('/quan-ly-quang-cao/' + adId + '/bat-tat/', {
+        method: 'POST',
+        headers: {'X-CSRFToken': csrfToken, 'Content-Type': 'application/json'}
+    }).then(r => r.json()).then(data => {
+        if (data.is_active) {
+            btn.textContent = '✅ Đang hiển thị';
+            btn.className = 'toggle-ad-btn btn-active';
+            btn.closest('tr').classList.remove('row-locked');
+        } else {
+            btn.textContent = '⏸️ Tạm dừng';
+            btn.className = 'toggle-ad-btn btn-inactive';
+            btn.closest('tr').classList.add('row-locked');
+        }
+    });
+}
+
+// Đóng modal khi click ngoài
+document.getElementById('modalAddAd').addEventListener('click', function(e) {
+    if (e.target === this) this.style.display = 'none';
+});
+</script>
+
+<style>
+.admin-ads-wrap { max-width: 1100px; margin: 0 auto; padding: 20px 15px 60px; }
+
+.admin-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 25px;
+}
+.admin-header h2 { font-size: 1.5rem; color: #2c3e50; margin-bottom: 5px; }
+.admin-subtitle { color: #888; font-size: 14px; }
+
+.btn-add-ad {
+    background: #27ae60; color: white; border: none;
+    padding: 10px 20px; border-radius: 6px; cursor: pointer;
+    font-size: 14px; font-weight: 600; white-space: nowrap;
+    transition: background .2s;
+}
+.btn-add-ad:hover { background: #219a52; }
+
+/* Stats reuse from manage_users */
+.stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 15px; margin-bottom: 25px; }
+.stat-card { background: white; border-radius: 10px; padding: 18px; display: flex; align-items: center; gap: 15px; border: 1px solid #eee; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+.stat-icon { font-size: 1.8rem; }
+.stat-num { font-size: 1.6rem; font-weight: 800; color: #2c3e50; }
+.stat-label { font-size: 12px; color: #888; margin-top: 2px; }
+.stat-total .stat-icon { color: #3498db; }
+.stat-active .stat-icon { color: #27ae60; }
+
+/* Table reuse */
+.table-wrap { background: white; border-radius: 10px; overflow: auto; border: 1px solid #eee; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+.users-table { width: 100%; border-collapse: collapse; }
+.users-table thead { background: #f8f9fa; }
+.users-table th { padding: 12px 14px; text-align: left; font-size: 13px; color: #555; border-bottom: 2px solid #e9ecef; font-weight: 600; }
+.users-table td { padding: 12px 14px; border-bottom: 1px solid #f0f0f0; font-size: 14px; vertical-align: middle; }
+.users-table tr:hover { background: #fafafa; }
+.td-num { color: #aaa; font-size: 13px; width: 40px; }
+.td-actions { white-space: nowrap; }
+.th-actions { text-align: center; }
+.row-locked { opacity: .6; }
+
+.pos-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+.pos-homepage { background: #eef2ff; color: #3730a3; }
+.pos-header { background: #ebf5fb; color: #2471a3; }
+.pos-sidebar { background: #eafaf1; color: #1e8449; }
+.pos-footer { background: #fef9e7; color: #9a7d0a; }
+.pos-in_article { background: #fdf2f8; color: #7d3c98; }
+
+.toggle-ad-btn { border: none; padding: 5px 12px; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all .2s; }
+.btn-active { background: #eafaf1; color: #1e8449; }
+.btn-inactive { background: #f5f5f5; color: #888; }
+.btn-active:hover { background: #d5f5e3; }
+.btn-inactive:hover { background: #e8e8e8; }
+
+.btn-edit-sm { background: #3498db; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; text-decoration: none; display: inline-block; margin-right: 4px; }
+.btn-del-sm { background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+.btn-edit-sm:hover { background: #2980b9; }
+.btn-del-sm:hover { background: #c0392b; }
+
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+.modal-box { background: white; border-radius: 12px; padding: 30px; width: 520px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-header h3 { font-size: 1.2rem; color: #2c3e50; }
+.modal-close { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #888; }
+.fg { margin-bottom: 15px; }
+.fg label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 5px; }
+.fg input, .fg select, .fg textarea { width: 100%; padding: 9px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; box-sizing: border-box; }
+.fg input:focus, .fg select:focus { outline: none; border-color: #3498db; }
+.fg-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+.btn-cancel { background: #ecf0f1; color: #555; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+.btn-save { background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; }
+.btn-save:hover { background: #2980b9; }
+
+@media (max-width: 768px) {
+    .stats-grid { grid-template-columns: repeat(2,1fr); }
+    .admin-header { flex-direction: column; gap: 12px; }
+    .fg-row { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
