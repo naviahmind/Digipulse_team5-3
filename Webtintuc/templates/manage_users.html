@@ -113,19 +113,19 @@
                     <td class="td-email">{{ u.email|default:"—" }}</td>
                     <td>
                         {% if u.is_superuser %}
-                        <span class="role-badge role-admin">⭐ Quản trị viên</span>
+                        <span class="role-badge role-admin">⭐ Admin</span>
                         {% elif u.profile.role == 'author' or u.is_staff %}
-                        <span class="role-badge role-author">✍️ Tác giả</span>
+                        <span class="role-badge role-author">Author</span>
                         {% else %}
-                        <span class="role-badge role-member">👤 Thành viên</span>
+                        <span class="role-badge role-member">User</span>
                         {% endif %}
                         {% if u != request.user %}
                         <form method="POST" action="{% url 'webtintuc:set_user_role' u.id %}" style="display:inline;margin-top:5px;">
                             {% csrf_token %}
                             <select name="role" onchange="this.form.submit()" class="role-select-mini">
-                                <option value="user" {% if u.profile.role == 'user' and not u.is_superuser %}selected{% endif %}>Người dùng</option>
-                                <option value="author" {% if u.profile.role == 'author' and not u.is_superuser %}selected{% endif %}>Tác giả</option>
-                                <option value="admin" {% if u.is_superuser %}selected{% endif %}>Quản trị viên</option>
+                                <option value="user" {% if u.profile.role == 'user' and not u.is_superuser %}selected{% endif %}>User</option>
+                                <option value="author" {% if u.profile.role == 'author' and not u.is_superuser %}selected{% endif %}>Author</option>
+                                <option value="admin" {% if u.is_superuser %}selected{% endif %}>Admin</option>
                             </select>
                         </form>
                         {% endif %}

@@ -53,11 +53,11 @@
                         <span class="role-badge role-member" title="Tài khoản người dùng">Thành viên</span>
                         {% endif %}
                         {% if user.is_staff or user.profile.role == 'author' %}
-                        <a href="{% url 'webtintuc:my_posts' %}" title="Quản lý bài viết">✍️ Bài viết</a>
+                        <a href="{% url 'webtintuc:my_posts' %}" title="Quản lý bài viết">Docs</a>
                         {% endif %}
                         {% if user.is_superuser or user.profile.role == 'admin' %}
-                        <a href="{% url 'webtintuc:manage_users' %}" title="Quản lý người dùng">👥 Người dùng</a>
-                        <a href="{% url 'webtintuc:manage_ads' %}" title="Quản lý quảng cáo">📢 Quảng cáo</a>
+                        <a href="{% url 'webtintuc:manage_users' %}" title="Quản lý người dùng">Users</a>
+                        <a href="{% url 'webtintuc:manage_ads' %}" title="Quản lý quảng cáo">Ads</a>
                         {% endif %}
                         <a href="{% url 'webtintuc:logout' %}">Đăng xuất</a>
                     {% else %}
