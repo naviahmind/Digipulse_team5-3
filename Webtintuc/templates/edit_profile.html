@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Chỉnh sửa profile{% endblock %}
+{% block content %}
+<div class="container" style="max-width:560px;margin:30px auto;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+    <h2 style="margin:0;"> Chỉnh sửa profile</h2>
+    <a href="{% url 'webtintuc:user_profile' request.user.username %}" style="color:#555;text-decoration:none;padding:8px 14px;border:1px solid #ddd;border-radius:5px;font-size:14px;">← Quay lại</a>
+  </div>
+  <div style="background:#fff;border-radius:12px;border:1px solid #eee;padding:28px;">
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      {% for field in form %}
+      <div style="margin-bottom:18px;">
+        <label style="display:block;font-weight:600;font-size:14px;margin-bottom:6px;color:#333;">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<p style="color:#e74c3c;font-size:12px;margin-top:4px;">{{ field.errors.0 }}</p>{% endif %}
+      </div>
+      {% endfor %}
+      <button type="submit" style="width:100%;padding:12px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:bold;cursor:pointer;">💾 Lưu thay đổi</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

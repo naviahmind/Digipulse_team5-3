@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Search: {{ query }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Search Results for "{{ query }}"</h2>
+
+    {% if posts %}
+    <div class="news-grid">
+        {% for post in posts %}
+        <div class="news-card">
+            <h3><a href="{% url 'webtintuc:post_detail' post.slug %}">{{ post.title }}</a></h3>
+            <p class="news-meta">
+                <strong>{{ post.author.get_full_name|default:post.author.username }}</strong> | {{ post.published_at|date:"d/m/Y" }}
+            </p>
+            <p>{{ post.summary|truncatewords:20 }}</p>
+            <a href="{% url 'webtintuc:post_detail' post.slug %}" class="link">Read More →</a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="no-results">
+        <p>No results found for "{{ query }}"</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
