@@ -1,0 +1,336 @@
+{% extends "base.html" %}
+{% block title %}{% if post %}Chỉnh sửa bài viết{% else %}Tạo bài viết mới{% endif %}{% endblock %}
+
+{% block content %}
+<div class="cp-wrap">
+    <div class="cp-header">
+        <h2>{% if post %} Chỉnh sửa{% else %} Tạo bài viết mới{% endif %}</h2>
+        <a href="{% url 'webtintuc:my_posts' %}" class="btn-back">← Quay lại</a>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" id="postForm">
+        {% csrf_token %}
+
+        {% if form.errors %}
+        <div class="error-box">⚠️ {{ form.errors }}</div>
+        {% endif %}
+
+        <div class="cp-grid">
+            <!-- Cột chính -->
+            <div class="cp-main">
+                <div class="fg">
+                    <label>Tiêu đề *</label>
+                    {{ form.title }}
+                </div>
+
+                <div class="fg">
+                    <label>Tóm tắt *</label>
+                    {{ form.summary }}
+                </div>
+
+                <div class="fg">
+                    <label>Nội dung bài viết *</label>
+
+                    <!-- Toolbar đơn giản -->
+                    <div class="toolbar">
+                        <button type="button" onclick="fmt('bold')" title="In đậm"><b>B</b></button>
+                        <button type="button" onclick="fmt('italic')" title="In nghiêng"><i>I</i></button>
+                        <button type="button" onclick="fmt('underline')" title="Gạch chân"><u>U</u></button>
+                        <span class="sep"></span>
+                        <button type="button" onclick="fmt('justifyLeft')" title="Căn lề trái">⬅️</button>
+                        <button type="button" onclick="fmt('justifyCenter')" title="Căn giữa">⬛</button>
+                        <button type="button" onclick="fmt('justifyRight')" title="Căn lề phải">➡️</button>
+                        <button type="button" onclick="fmt('justifyFull')" title="Căn đều hai bên">↔️</button>
+                        <span class="sep"></span>
+                        <select onchange="setFontSize(this.value)" title="Cỡ chữ" class="font-size-select">
+                            <option value="">Cỡ chữ</option>
+                            <option value="1">Rất nhỏ</option>
+                            <option value="2">Nhỏ</option>
+                            <option value="3">Vừa</option>
+                            <option value="4">Lớn</option>
+                            <option value="5">Rất lớn</option>
+                            <option value="6">Cực lớn</option>
+                            <option value="7">Khổng lồ</option>
+                        </select>
+                        <span class="sep"></span>
+                        <button type="button" onclick="insertHeading()" title="Tiêu đề">H2</button>
+                        <button type="button" onclick="fmt('insertUnorderedList')" title="Danh sách">• List</button>
+                        <button type="button" onclick="fmt('insertOrderedList')" title="Danh sách số">1. List</button>
+                        <span class="sep"></span>
+                        <button type="button" onclick="insertLink()" title="Chèn link">🔗</button>
+                    </div>
+
+                    <!-- Vùng soạn thảo — contenteditable, -->
+                    <div id="editor" contenteditable="true" class="editor-area">{% if form.content.value %}{{ form.content.value|safe }}{% endif %}</div>
+
+                    <!-- Hidden textarea để submit -->
+                    <textarea name="content" id="contentHidden" style="display:none">{% if form.content.value %}{{ form.content.value }}{% endif %}</textarea>
+                </div>
+            </div>
+
+            <!-- Cột phụ -->
+            <div class="cp-side">
+                <div class="side-card">
+                    <h4>📋 Thông tin</h4>
+                    <div class="fg">
+                        <label>Danh mục *</label>{{ form.category }}
+                        {% if user.is_superuser or user.profile.role == 'admin' %}
+                        <div class="quick-add">
+                            <input type="text" id="newCategoryInput" placeholder="Tên danh mục mới...">
+                            <button type="button" onclick="addCategory()">+ Thêm</button>
+                        </div>
+                        <div id="categoryMsg" class="quick-add-msg"></div>
+                        {% endif %}
+                    </div>
+                    <div class="fg">
+                        <label>Loại bài</label>{{ form.post_type }}
+                    </div>
+                    {% if request.user.is_superuser or request.user.profile.role == 'admin' or request.user.is_staff %}
+                    <div class="fg">
+                        <label>Trạng thái</label>{{ form.status }}
+                    </div>
+                    {% else %}
+                    {# Tác giả không được tự chọn trạng thái — luôn lưu nháp, admin duyệt #}
+                    <div class="fg">
+                        <label>Trạng thái</label>
+                        <div class="author-status-note">📋 Nháp — chờ admin duyệt</div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    {% if post %}💾 Lưu thay đổi{% else %} Đăng bài{% endif %}
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+// Trước khi submit, copy HTML từ editor vào hidden textarea
+document.getElementById('postForm').addEventListener('submit', function() {
+    document.getElementById('contentHidden').value = document.getElementById('editor').innerHTML;
+});
+
+// Định dạng text (bold, italic, ...)
+function fmt(cmd) {
+    document.getElementById('editor').focus();
+    document.execCommand(cmd, false, null);
+}
+
+// Chèn tiêu đề H2
+function insertHeading() {
+    document.getElementById('editor').focus();
+    document.execCommand('formatBlock', false, 'h2');
+}
+
+// Chèn link
+function insertLink() {
+    var url = prompt('Nhập URL:');
+    if (url) {
+        document.getElementById('editor').focus();
+        document.execCommand('createLink', false, url);
+    }
+}
+
+// Đặt cỡ chữ cho phần text đang chọn
+var FONT_SIZE_MAP = {1:'12px', 2:'14px', 3:'16px', 4:'18px', 5:'22px', 6:'28px', 7:'36px'};
+function setFontSize(value) {
+    if (!value) return;
+    var editor = document.getElementById('editor');
+    editor.focus();
+    document.execCommand('fontSize', false, value);
+    // Chuyển <font size="X"> thành <span style="font-size:...px"> để hiển thị đúng ở mọi nơi
+    editor.querySelectorAll('font[size]').forEach(function(el) {
+        var size = el.getAttribute('size');
+        var span = document.createElement('span');
+        span.style.fontSize = FONT_SIZE_MAP[size] || '16px';
+        span.innerHTML = el.innerHTML;
+        el.parentNode.replaceChild(span, el);
+    });
+}
+
+// Thêm danh mục mới (AJAX) – chỉ admin mới thấy nút này
+function addCategory() {
+    var input = document.getElementById('newCategoryInput');
+    var msg = document.getElementById('categoryMsg');
+    var name = input.value.trim();
+    if (!name) return;
+    var formData = new FormData();
+    formData.append('name', name);
+    fetch('{% url "webtintuc:add_category_ajax" %}', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.id) {
+            var select = document.getElementById('id_category');
+            var exists = false;
+            for (var i = 0; i < select.options.length; i++) {
+                if (parseInt(select.options[i].value) === data.id) { exists = true; break; }
+            }
+            if (!exists) {
+                var opt = document.createElement('option');
+                opt.value = data.id;
+                opt.textContent = data.name;
+                select.appendChild(opt);
+            }
+            select.value = data.id;
+            input.value = '';
+            msg.textContent = data.created ? ('✅ Đã thêm "' + data.name + '"') : ('ℹ️ Đã chọn "' + data.name + '"');
+            msg.className = 'quick-add-msg ok';
+        } else {
+            msg.textContent = '❌ ' + (data.error || 'Lỗi không xác định');
+            msg.className = 'quick-add-msg err';
+        }
+    })
+    .catch(() => { msg.textContent = '❌ Lỗi kết nối'; msg.className = 'quick-add-msg err'; });
+}
+{% if user.is_superuser or user.profile.role == 'admin' %}
+document.getElementById('newCategoryInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); addCategory(); }
+});
+{% endif %}
+
+// Thêm tag mới (AJAX) và chọn luôn tag đó
+function addTag() {
+    var input = document.getElementById('newTagInput');
+    var msg = document.getElementById('tagMsg');
+    var name = input.value.trim();
+    if (!name) return;
+
+    var formData = new FormData();
+    formData.append('name', name);
+
+    fetch('{% url "webtintuc:add_tag_ajax" %}', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.id) {
+            var select = document.getElementById('id_tags');
+            var opt = null;
+            for (var i = 0; i < select.options.length; i++) {
+                if (parseInt(select.options[i].value) === data.id) { opt = select.options[i]; break; }
+            }
+            if (!opt) {
+                opt = document.createElement('option');
+                opt.value = data.id;
+                opt.textContent = data.name;
+                select.appendChild(opt);
+            }
+            opt.selected = true;
+            input.value = '';
+            msg.textContent = data.created ? ('✅ Đã thêm tag "' + data.name + '"') : ('ℹ️ Đã chọn tag có sẵn "' + data.name + '"');
+            msg.className = 'quick-add-msg ok';
+        } else {
+            msg.textContent = '❌ ' + (data.error || 'Lỗi không xác định');
+            msg.className = 'quick-add-msg err';
+        }
+    })
+    .catch(() => { msg.textContent = '❌ Lỗi kết nối'; msg.className = 'quick-add-msg err'; });
+}
+
+// Enter để thêm nhanh
+document.getElementById('newTagInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); addTag(); }
+});
+</script>
+
+<style>
+.cp-wrap { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
+.cp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.cp-header h2 { margin: 0; }
+.btn-back { color: #555; text-decoration: none; padding: 8px 14px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
+.btn-back:hover { background: #f5f5f5; }
+
+.cp-grid { display: grid; grid-template-columns: 1fr 280px; gap: 24px; align-items: start; }
+@media (max-width: 768px) { .cp-grid { grid-template-columns: 1fr; } }
+
+.fg { margin-bottom: 16px; }
+.author-status-note {
+    display: inline-block;
+    padding: 6px 14px;
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffc107;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+}
+.fg label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 6px; color: #333; }
+.fg input[type=text], .fg textarea, .fg select {
+    width: 100%; padding: 9px 12px; border: 1px solid #ddd; border-radius: 6px;
+    font-size: 14px; box-sizing: border-box; font-family: inherit;
+}
+.fg input[type=text]:focus, .fg textarea:focus, .fg select:focus {
+    outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,.12);
+}
+.fg input[type=file] { font-size: 13px; }
+
+/* Toolbar */
+.toolbar {
+    display: flex; flex-wrap: wrap; gap: 4px; align-items: center;
+    background: #f8f8f8; border: 1px solid #ddd; border-bottom: none;
+    padding: 6px 8px; border-radius: 6px 6px 0 0;
+}
+.toolbar button {
+    padding: 4px 10px; border: 1px solid #ccc; border-radius: 4px;
+    background: white; cursor: pointer; font-size: 13px; line-height: 1.4;
+    color: #333; user-select: none;
+}
+.toolbar button:hover { background: #667eea; color: white; border-color: #667eea; }
+.sep { width: 1px; height: 22px; background: #ddd; margin: 0 2px; }
+
+/* Editor */
+.editor-area {
+    min-height: 320px; padding: 14px; border: 1px solid #ddd;
+    border-radius: 0 0 6px 6px; background: white; font-size: 15px;
+    line-height: 1.8; outline: none; font-family: inherit;
+}
+.editor-area:focus { border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,.12); }
+.editor-area img { max-width: 100%; height: auto; border-radius: 4px; margin: 8px 0; cursor: pointer; }
+.editor-area h2 { font-size: 20px; margin: 18px 0 8px; }
+
+.side-card { background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+.side-card h4 { margin: 0 0 14px; font-size: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+
+.btn-submit {
+    width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: bold;
+    cursor: pointer; transition: opacity .2s;
+}
+.btn-submit:hover { opacity: .9; }
+
+.font-size-select {
+    padding: 4px 6px; border: 1px solid #ccc; border-radius: 4px;
+    background: white; cursor: pointer; font-size: 13px; color: #333;
+}
+
+/* Thêm danh mục / tag nhanh */
+.quick-add { display: flex; gap: 6px; margin-top: 8px; }
+.quick-add input {
+    flex: 1; padding: 7px 10px; border: 1px solid #ddd; border-radius: 5px;
+    font-size: 13px; font-family: inherit;
+}
+.quick-add button {
+    padding: 7px 12px; border: none; border-radius: 5px; background: #667eea;
+    color: white; font-size: 13px; cursor: pointer; white-space: nowrap;
+}
+.quick-add button:hover { opacity: .9; }
+.quick-add-msg { font-size: 12px; margin-top: 6px; }
+.quick-add-msg.ok { color: #155724; }
+.quick-add-msg.err { color: #721c24; }
+
+.tags-multiselect { min-height: 90px; }
+
+.error-box {
+    background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px;
+    padding: 12px 16px; margin-bottom: 20px; color: #856404; font-size: 14px;
+}
+</style>
+{% endblock %}
