@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+{% block title %}FAQ - Câu hỏi thường gặp | DIGIPULSE{% endblock %}
+
+{% block content %}
+<div class="static-page">
+    <div class="page-hero faq-hero">
+        <h1>Câu Hỏi Thường Gặp</h1>
+        <p>Tìm câu trả lời cho những thắc mắc phổ biến nhất</p>
+    </div>
+
+    <div class="faq-search-bar">
+        <input type="text" id="faqSearch" placeholder="Tìm câu hỏi..." oninput="filterFAQ(this.value)">
+    </div>
+
+    <div class="faq-categories">
+        <button class="faq-cat-btn active" onclick="filterCat('all', this)">Tất cả</button>
+        <button class="faq-cat-btn" onclick="filterCat('account', this)">Tài khoản</button>
+        <button class="faq-cat-btn" onclick="filterCat('content', this)">Nội dung</button>
+        <button class="faq-cat-btn" onclick="filterCat('comment', this)">Bình luận</button>
+        <button class="faq-cat-btn" onclick="filterCat('other', this)">Khác</button>
+    </div>
+
+    <div class="faq-list" id="faqList">
+
+        <!-- Tài khoản -->
+        <div class="faq-item" data-cat="account">
+            <button class="faq-question" onclick="toggleFAQ(this)">
+                <span>Làm thế nào để đăng ký tài khoản?</span>
+                <span class="faq-icon">+</span>
+            </button>
+            <div class="faq-answer">
+                <p>Nhấn vào nút <strong>Đăng ký</strong> ở góc trên bên phải. Điền đầy đủ thông tin: tên đăng nhập, email và mật khẩu. Sau khi hoàn tất, bạn sẽ được đăng nhập tự động.</p>
+            </div>
+        </div>
+
+        <div class="faq-item" data-cat="account">
+            <button class="faq-question" onclick="toggleFAQ(this)">
+                <span>Tôi quên mật khẩu, phải làm sao?</span>
+                <span class="faq-icon">+</span>
+            </button>
+            <div class="faq-answer">
+                <p>Hiện tại tính năng khôi phục mật khẩu đang được phát triển. Vui lòng liên hệ với chúng tôi qua trang <a href="/lien-he/">Liên hệ</a> để được hỗ trợ đặt lại mật khẩu.</p>
+            </div>
+        </div>
+
+        <div class="faq-item" data-cat="account">
+            <button class="faq-question" onclick="toggleFAQ(this)">
+                <span>Tôi có thể đổi tên đăng nhập không?</span>
+                <span class="faq-icon">+</span>
+            </button>
+            <div class="faq-answer">
+                <p>Hiện tại tên đăng nhập không thể thay đổi sau khi đăng ký. Nếu cần hỗ trợ, hãy liên hệ với quản trị viên qua trang <a href="/lien-he/">Liên hệ</a>.</p>
+            </div>
+        </div>
+
+        <!-- Nội dung -->
+        <div class="faq-item" data-cat="content">
+            <button class="faq-question" onclick="toggleFAQ(this)">
+                <span>Tôi có thể đăng bài viết lên trang web không?</span>
+                <span class="faq-icon">+</span>
+            </button>
+            <div class="faq-answer">
+                <p>Có! Sau khi đăng nhập, bạn có thể tạo bài viết thông qua phần quản trị. Bài viết sẽ được xét duyệt trước khi xuất bản công khai.</p>
+            </div>
+        </div>
+
+        <div class="faq-item" data-cat="content">
+            <button class="faq-question" onclick="toggleFAQ(this)">
+                <span>Tôi có thể thêm ảnh vào bài viết không?</span>
+                <span class="faq-icon">+</span>
+            </button>
+            <div class="faq-answer">
+                <p>Có. Mỗi bài viết hỗ trợ một <strong>ảnh tiêu đề (thumbnail)</strong> hiển thị trên trang chủ và trong bài viết. Ảnh nên có tỷ lệ 16:9 để hiển thị đẹp nhất.</p>
+            </div>
+        </div>
+
+        <div class="faq-item" data-cat="content">
+            <button class="faq-question" onclick="toggleFAQ(this)">
+                <span>Tại sao bài viết của tôi chưa hiển thị công khai?</span>
+                <span class="faq-icon">+</span>
+            </button>
+            <div class="faq-answer">
+                <p>Bài viết cần được chuyển trạng thái sang <strong>Đã đăng</strong> mới hiển thị công khai. Nếu bạn đã đăng nhưng vẫn chưa thấy, hãy kiểm tra trạng thái bài viết trong mục "Bài viết của tôi".</p>
+            </div>
+        </div>
+
+        <!-- Bình luận -->
+        <div class="faq-item" data-cat="comment">
+            <button class="faq-question" onclick="toggleFAQ(this)">
+                <span>Tại sao tôi không thể bình luận?</span>
+                <span class="faq-icon">+</span>
+            </button>
+            <div class="faq-answer">
+                <p>Bạn cần <strong>đăng nhập</strong> để có thể bình luận. Nếu đã đăng nhập mà vẫn không thể bình luận, hãy thử tải lại trang hoặc liên hệ hỗ trợ.</p>
+            </div>
+        </div>
+
+        <div class="faq-item" data-cat="comment">
+            <button class="faq-question" onclick="toggleFAQ(this)">
+                <span>Bình luận của tôi bị xóa, tại sao?</span>
+                <span class="faq-icon">+</span>
+            </button>
+            <div class="faq-answer">
+                <p>Chúng tôi xóa các bình luận vi phạm <a href="/chinh-sach/">chính sách cộng đồng</a> như: spam, ngôn ngữ thô tục, thông tin sai lệch hoặc quảng cáo không được phép.</p>
+            </div>
+        </div>
+
+        <!-- Khác -->
+        <div class="faq-item" data-cat="other">
+            <button class="faq-question" onclick="toggleFAQ(this)">
+                <span>Làm sao để đặt quảng cáo trên trang?</span>
+                <span class="faq-icon">+</span>
+            </button>
+            <div class="faq-answer">
+                <p>Vui lòng xem thêm thông tin tại trang <a href="/quang-cao/">Quảng cáo</a> hoặc liên hệ trực tiếp với chúng tôi để được tư vấn gói phù hợp.</p>
+            </div>
+        </div>
+
+        <div class="faq-item" data-cat="other">
+            <button class="faq-question" onclick="toggleFAQ(this)">
+                <span>Tôi phát hiện nội dung sai lệch, tôi nên làm gì?</span>
+                <span class="faq-icon">+</span>
+            </button>
+            <div class="faq-answer">
+                <p>Hãy sử dụng trang <a href="/bao-cao-loi/">Báo cáo lỗi</a> hoặc <a href="/phan-hoi/">Gửi phản hồi</a> để thông báo cho chúng tôi. Chúng tôi cam kết xử lý trong vòng 24 giờ.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="faq-empty" id="faqEmpty" style="display:none;">
+        <p> Không tìm thấy câu hỏi phù hợp. Hãy <a href="/lien-he/">liên hệ với chúng tôi</a>!</p>
+    </div>
+
+    <div class="still-need-help">
+        <h3>Vẫn cần hỗ trợ?</h3>
+        <p>Đội ngũ của chúng tôi luôn sẵn sàng giúp đỡ bạn.</p>
+        <a href="/lien-he/" class="btn-primary">Liên hệ ngay</a>
+    </div>
+</div>
+
+<style>
+.static-page { max-width: 860px; margin: 0 auto; padding-bottom: 60px; }
+
+.page-hero {
+    text-align: center;
+    padding: 50px 20px 40px;
+    margin-bottom: 30px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+    color: white;
+}
+.page-hero h1 { font-size: 2rem; margin-bottom: 10px; }
+.page-hero p { font-size: 1rem; opacity: 0.9; }
+
+.faq-search-bar { margin-bottom: 20px; }
+.faq-search-bar input {
+    width: 100%;
+    padding: 12px 18px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 15px;
+    transition: border-color 0.2s;
+}
+.faq-search-bar input:focus { outline: none; border-color: #3498db; }
+
+.faq-categories { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 25px; }
+.faq-cat-btn {
+    padding: 7px 18px;
+    border: 2px solid #ddd;
+    border-radius: 20px;
+    background: white;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+.faq-cat-btn:hover, .faq-cat-btn.active {
+    background: #2c3e50;
+    color: white;
+    border-color: #2c3e50;
+}
+
+.faq-item {
+    border: 1px solid #e8e8e8;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    background: white;
+}
+.faq-question {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    text-align: left;
+    color: #2c3e50;
+    transition: background 0.2s;
+}
+.faq-question:hover { background: #f8f9fa; }
+.faq-icon { font-size: 22px; color: #3498db; flex-shrink: 0; margin-left: 10px; transition: transform 0.3s; }
+.faq-question.open .faq-icon { transform: rotate(45deg); }
+.faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease, padding 0.2s;
+    padding: 0 20px;
+}
+.faq-answer.open { max-height: 300px; padding: 0 20px 18px; }
+.faq-answer p { color: #555; line-height: 1.7; }
+.faq-answer a { color: #3498db; }
+
+.faq-empty { text-align: center; padding: 30px; color: #666; }
+.faq-empty a { color: #3498db; }
+
+.still-need-help {
+    text-align: center;
+    margin-top: 50px;
+    padding: 35px;
+    background: #f0f7ff;
+    border-radius: 8px;
+}
+.still-need-help h3 { font-size: 1.3rem; margin-bottom: 8px; color: #2c3e50; }
+.still-need-help p { color: #666; margin-bottom: 18px; }
+.btn-primary {
+    display: inline-block;
+    padding: 11px 28px;
+    background: #3498db;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+.btn-primary:hover { background: #2980b9; }
+</style>
+
+<script>
+function toggleFAQ(btn) {
+    const answer = btn.nextElementSibling;
+    const isOpen = answer.classList.contains('open');
+    document.querySelectorAll('.faq-answer.open').forEach(a => a.classList.remove('open'));
+    document.querySelectorAll('.faq-question.open').forEach(b => b.classList.remove('open'));
+    if (!isOpen) { answer.classList.add('open'); btn.classList.add('open'); }
+}
+
+function filterFAQ(query) {
+    const items = document.querySelectorAll('.faq-item');
+    let visible = 0;
+    items.forEach(item => {
+        const text = item.querySelector('.faq-question span').textContent.toLowerCase();
+        const match = text.includes(query.toLowerCase());
+        item.style.display = match ? '' : 'none';
+        if (match) visible++;
+    });
+    document.getElementById('faqEmpty').style.display = visible === 0 ? '' : 'none';
+}
+
+function filterCat(cat, btn) {
+    document.querySelectorAll('.faq-cat-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.faq-item').forEach(item => {
+        item.style.display = (cat === 'all' || item.dataset.cat === cat) ? '' : 'none';
+    });
+}
+</script>
+{% endblock %}

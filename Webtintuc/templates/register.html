@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}Đăng Ký{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="auth-form">
+        <h2>Đăng Ký Tài Khoản</h2>
+        <form method="POST">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="error-message">
+                {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Họ và tên -->
+            <div class="form-group">
+                <label for="{{ form.full_name.id_for_label }}">Họ và tên <span class="required">*</span></label>
+                {% if form.full_name.errors %}
+                <div class="form-errors">{{ form.full_name.errors }}</div>
+                {% endif %}
+                {{ form.full_name }}
+            </div>
+
+            <!-- Ngày sinh -->
+            <div class="form-group">
+                <label for="{{ form.birth_date.id_for_label }}">Ngày sinh <span class="required">*</span></label>
+                {% if form.birth_date.errors %}
+                <div class="form-errors">{{ form.birth_date.errors }}</div>
+                {% endif %}
+                {{ form.birth_date }}
+            </div>
+
+            <!-- Giới tính -->
+            <div class="form-group">
+                <label for="{{ form.gender.id_for_label }}">Giới tính <span class="required">*</span></label>
+                {% if form.gender.errors %}
+                <div class="form-errors">{{ form.gender.errors }}</div>
+                {% endif %}
+                {{ form.gender }}
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+                <label for="{{ form.email.id_for_label }}">Email <span class="required">*</span></label>
+                {% if form.email.errors %}
+                <div class="form-errors">{{ form.email.errors }}</div>
+                {% endif %}
+                {{ form.email }}
+            </div>
+
+            <!-- Tên đăng nhập -->
+            <div class="form-group">
+                <label for="{{ form.username.id_for_label }}">Tên đăng nhập <span class="required">*</span></label>
+                {% if form.username.errors %}
+                <div class="form-errors">{{ form.username.errors }}</div>
+                {% endif %}
+                {{ form.username }}
+            </div>
+
+            <!-- Mật khẩu -->
+            <div class="form-group">
+                <label for="{{ form.password1.id_for_label }}">Mật khẩu <span class="required">*</span></label>
+                {% if form.password1.errors %}
+                <div class="form-errors">{{ form.password1.errors }}</div>
+                {% endif %}
+                {{ form.password1 }}
+            </div>
+
+            <!-- Xác nhận mật khẩu -->
+            <div class="form-group">
+                <label for="{{ form.password2.id_for_label }}">Xác nhận mật khẩu <span class="required">*</span></label>
+                {% if form.password2.errors %}
+                <div class="form-errors">{{ form.password2.errors }}</div>
+                {% endif %}
+                {{ form.password2 }}
+            </div>
+
+            <button type="submit" class="btn">Đăng Ký</button>
+        </form>
+
+        <p class="auth-link">
+            Đã có tài khoản? <a href="{% url 'webtintuc:login' %}">Đăng nhập ở đây</a>
+        </p>
+    </div>
+</div>
+
+<style>
+    .auth-form {
+        max-width: 460px;
+        margin: 40px auto;
+        padding: 36px 32px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    }
+
+    .auth-form h2 {
+        text-align: center;
+        margin-bottom: 28px;
+        font-size: 22px;
+        color: #333;
+    }
+
+    .form-group {
+        margin-bottom: 18px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+        font-size: 14px;
+        color: #444;
+    }
+
+    .required {
+        color: #e74c3c;
+    }
+
+    .auth-form input[type="text"],
+    .auth-form input[type="password"],
+    .auth-form input[type="email"],
+    .auth-form input[type="date"],
+    .auth-form select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        box-sizing: border-box;
+        font-size: 14px;
+        transition: border-color 0.2s;
+    }
+
+    .auth-form input:focus,
+    .auth-form select:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102,126,234,0.15);
+    }
+
+    .auth-form button {
+        width: 100%;
+        padding: 12px;
+        background: #667eea;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 16px;
+        margin-top: 8px;
+        transition: background 0.2s;
+    }
+
+    .auth-form button:hover {
+        background: #5568d3;
+    }
+
+    .auth-link {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 14px;
+    }
+
+    .auth-link a {
+        color: #667eea;
+        text-decoration: none;
+    }
+
+    .auth-link a:hover {
+        text-decoration: underline;
+    }
+
+    .error-message {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 12px;
+        border: 1px solid #f5c6cb;
+        border-radius: 5px;
+        margin-bottom: 16px;
+        font-size: 14px;
+    }
+
+    .error-message p { margin: 0; }
+
+    .form-errors {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 8px 12px;
+        border: 1px solid #f5c6cb;
+        border-radius: 4px;
+        margin-bottom: 6px;
+        font-size: 13px;
+    }
+
+    .form-errors ul {
+        margin: 0;
+        padding-left: 18px;
+    }
+</style>
+{% endblock %}
