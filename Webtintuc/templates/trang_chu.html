@@ -13,10 +13,7 @@
             {% if ad.link_url %}
             <a href="{{ ad.link_url }}" target="_blank" rel="noopener sponsored">
             {% endif %}
-
-            {% if ad.image %}
-                <img src="{{ ad.image.url }}" alt="{{ ad.title }}" class="ad-image">
-            {% else %}
+            {% if ad.title %}
                 <div class="ad-text-block">
                     <strong class="ad-title">{{ ad.title }}</strong>
                     {% if ad.content %}
@@ -53,11 +50,6 @@
         <div class="news-grid">
             {% for post in latest_posts %}
             <div class="news-card">
-                {% if post.thumbnail %}
-                <a href="{% url 'webtintuc:post_detail' post.slug %}">
-                    <img src="{{ post.thumbnail.url }}" alt="{{ post.title }}" class="card-thumbnail">
-                </a>
-                {% endif %}
                 <div class="card-body">
                 <h3><a href="{% url 'webtintuc:post_detail' post.slug %}">{{ post.title }}</a></h3>
                 <p class="news-meta">

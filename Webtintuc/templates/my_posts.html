@@ -39,11 +39,11 @@
                 <td>{{ post.created_at|date:"d/m/Y" }}</td>
                 <td>
                     {% if post.author == request.user or request.user.is_superuser or request.user.profile.role == 'admin' or request.user.is_staff %}
-                    <a href="{% url 'webtintuc:edit_post' post.slug %}" class="btn-edit">✏️ Sửa</a>
+                    <a href="{% url 'webtintuc:edit_post' post.slug %}" class="btn-edit">Sửa</a>
                     <form method="POST" action="{% url 'webtintuc:delete_post' post.slug %}" style="display:inline;"
                         onsubmit="return confirm('Xóa bài viết \"{{ post.title }}\"? Hành động này không thể hoàn tác!');">
                         {% csrf_token %}
-                        <button type="submit" class="btn-delete">🗑️ Xóa</button>
+                        <button type="submit" class="btn-delete">Xóa</button>
                     </form>
                     {% else %}
                     <span style="color:#bbb;font-size:12px;">—</span>

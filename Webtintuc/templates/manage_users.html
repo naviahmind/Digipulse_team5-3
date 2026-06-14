@@ -148,7 +148,7 @@
                                 <button type="submit" class="btn-action btn-promote"
                                     onclick="return confirm('Nâng {{ u.username }} lên Quản trị viên?')"
                                     title="Nâng thành Quản trị viên">
-                                    ⬆️ Nâng quyền
+                                    Nâng quyền
                                 </button>
                             </form>
                             {% else %}
@@ -157,7 +157,7 @@
                                 <button type="submit" class="btn-action btn-demote"
                                     onclick="return confirm('Hạ {{ u.username }} xuống Thành viên?')"
                                     title="Hạ xuống Thành viên">
-                                    ⬇️ Hạ quyền
+                                    Hạ quyền
                                 </button>
                             </form>
                             {% endif %}
@@ -168,11 +168,11 @@
                                 {% if u.is_active %}
                                 <button type="submit" class="btn-action btn-lock" title="Khóa tài khoản"
                                     onclick="return confirm('Khóa tài khoản {{ u.username }}?')">
-                                    🔒 Khóa
+                                    Khóa
                                 </button>
                                 {% else %}
                                 <button type="submit" class="btn-action btn-unlock" title="Mở khóa tài khoản">
-                                    🔓 Mở khóa
+                                    Mở khóa
                                 </button>
                                 {% endif %}
                             </form>
@@ -181,7 +181,7 @@
                             <button type="button" class="btn-action btn-pw"
                                 onclick="openResetPwModal('{{ u.id }}', '{{ u.username }}')"
                                 title="Đặt lại mật khẩu">
-                                🔑 Mật khẩu
+                                Mật khẩu
                             </button>
 
                             <!-- Xóa tài khoản (chỉ xóa được thành viên) -->
